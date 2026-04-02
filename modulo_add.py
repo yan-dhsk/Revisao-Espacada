@@ -1,4 +1,5 @@
 import sqlite3
+from datetime import date, timedelta
 
 def adicionar_materia(cursor, nome):
     cursor.execute("SELECT m_id FROM materias WHERE m_nome = (?)", (nome, ))
@@ -36,7 +37,7 @@ def adicionar_topico(cursor, a_nome, nome):
     else:
         return False
 
-def adicionar_subtopico(cursor, t_nome, nome, data_estudo, ultima_revisao, numero_revisoes, data_revisar):
+def adicionar_subtopico(cursor, t_nome, nome):
     cursor.execute("SELECT t_id FROM topicos WHERE t_nome = (?)", (t_nome,))
     t_id0 = cursor.fetchone()
     if t_id0:
@@ -45,6 +46,10 @@ def adicionar_subtopico(cursor, t_nome, nome, data_estudo, ultima_revisao, numer
         if cursor.fetchone():
             return False
         else:
+            data_estudo = date.today()
+            ultima_revisao = date.today()
+            numero_revisoes = 0
+            data_revisar = date.today()
             cursor.execute("INSERT INTO subtopico (t_id, s_nome, data_estudo, ultima_revisao, numero_revisoes, data_revisar) VALUES (?, ?, ?, ?, ?, ?)", (t_id, nome, data_estudo, ultima_revisao, numero_revisoes, data_revisar))
             return True
     else:
