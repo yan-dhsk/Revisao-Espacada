@@ -1,5 +1,6 @@
 import sqlite3
 import modulo_add
+import modulo_update
 
 estudo = sqlite3.connect("Revisões.db")
 cursor = estudo.cursor()
