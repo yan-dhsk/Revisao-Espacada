@@ -1,5 +1,4 @@
-import sqlite3
-from datetime import date, timedelta
+from datetime import date
 
 def adicionar_materia(cursor, nome):
     cursor.execute("SELECT m_id FROM materias WHERE m_nome = (?)", (nome, ))
