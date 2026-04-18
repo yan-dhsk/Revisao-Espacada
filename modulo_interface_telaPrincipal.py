@@ -2,49 +2,65 @@ import tkinter as tk
 import sqlite3
 from datetime import date
 import modulo_update
+import modulo_interface_telaAdicionar
+import modulo_interface_telaRemover
 
-bancoDados = sqlite3.connect("Revisões.db")
-cursor = bancoDados.cursor()
 
 largura = 800
 altura = 600
 
 destruir = []
 
-def tela_principal():
+def tela_principal(cursor, bancoDados):
     root = tk.Tk()
     root.title("Revisões espaçadas")
     root.geometry(f"{largura}x{altura}")
+    root.resizable(False, False)
 
-    desenhar_tela(root)
+    desenhar_tela(root, cursor, bancoDados)
 
     root.mainloop()
 
-def desenhar_tela(root):
+def desenhar_tela(root, cursor, bancoDados):
+    global destruir
+
     inicio = tk.Label(root, text="Bem-Vindo", font=("Arial", 28))
     inicio.pack()
     destruir.append(inicio)
+
+    botoes = tk.Frame(root)
+    destruir.append(botoes)
+
+    botao_adicionar = tk.Button(botoes, text="Adicionar", bg="blue", fg="white", width=10, height=2, command=lambda : modulo_interface_telaAdicionar.tela_adicionar(cursor, bancoDados, destruir, root))
+    botao_editar = tk.Button(botoes, text="Editar", bg="blue", fg="white", width=10, height=2)
+    botao_remover = tk.Button(botoes, text="Remover", bg="blue", fg="white", width=10, height=2, command=lambda : modulo_interface_telaRemover.tela_deletar(cursor, bancoDados, destruir, root))
+    
+    botao_adicionar.pack(side='left')
+    botao_editar.pack(side='left', padx=(10, 0))
+    botao_remover.pack(side='left', padx=(10,0))
+    botoes.pack()
+
 
     hoje = tk.Label(root, text="Revisar hoje:", font=("Arial", 14))
     hoje.place(x= (largura*0.025), y=((altura+200)*0.125))
     destruir.append(hoje)
 
-    medida_base = desenhar_revisoes(root, 800, 1) + 200
+    medida_base = desenhar_revisoes(root, 800, 1, cursor, bancoDados) + 200
 
     revisar_depois = tk.Label(root, text="Revisar depois:", font=('Arial', 14), fg='gray')
     revisar_depois.place(x = (largura*0.025), y=((200+medida_base)*0.125))
     destruir.append(revisar_depois)
 
-    medida_base2 = desenhar_revisoes(root, medida_base + 200, 2)
+    medida_base2 = desenhar_revisoes(root, medida_base + 200, 2, cursor, bancoDados)
 
     revisoes_atrasadas = tk.Label(root, text="Revisões atrasadas:", font=('Arial', 14), fg='red')
     revisoes_atrasadas.place(x = (largura*0.025), y=((medida_base2+200)*0.125))
     destruir.append(revisoes_atrasadas)
 
-    desenhar_revisoes(root, medida_base2 + 200, 3)
+    desenhar_revisoes(root, medida_base2 + 200, 3, cursor, bancoDados)
 
 
-def desenhar_revisoes(root, medida_base, escolha):
+def desenhar_revisoes(root, medida_base, escolha, cursor, bancoDados):
     global destruir
 
     if escolha == 1:
@@ -91,7 +107,7 @@ def desenhar_revisoes(root, medida_base, escolha):
 
             check = tk.Checkbutton(root, text='', variable=checkin[indice])
             destruir.append(check) 
-            check.config(command=lambda s_id=subtopicos[indice][2]: [modulo_update.revisar(cursor, s_id), bancoDados.commit(), limpar_tela(), desenhar_tela(root)])
+            check.config(command=lambda s_id=subtopicos[indice][2]: [modulo_update.revisar(cursor, s_id), bancoDados.commit(), limpar_tela('a'), desenhar_tela(root, cursor, bancoDados)])
 
             revisao4.place(x= ((largura + 22400)*0.025), y=((medida_base + espaço)*0.125))
             revisao.place(x= ((largura + 16900)*0.025), y=((medida_base + espaço)*0.125))
@@ -137,9 +153,13 @@ def desenhar_nomes_colunas(root, largura, altura):
     linha.create_line(0, 0, 700, 0, fill="#000000", width=2)
     destruir.append(linha)
 
-def limpar_tela():
+def limpar_tela(destruir2):
     global destruir
-    for x in range (len(destruir)):
-        destruir[x].destroy()
-
-tela_principal()
+    if destruir2 == 'a':
+        for x in range (len(destruir)):
+            destruir[x].destroy()
+        destruir.clear()
+    else:
+        for x in range (len(destruir2)):
+            destruir2[x].destroy()
+        destruir2.clear()
