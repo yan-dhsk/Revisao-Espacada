@@ -1,10 +1,9 @@
 import sqlite3
-import modulo_add
-import modulo_update
-import modulo_delete
+import modulo_interface_telaPrincipal
+import modulo_interface_telaAdicionar
 
-estudo = sqlite3.connect("Revisões.db")
-cursor = estudo.cursor()
+bancoDados = sqlite3.connect("Revisões.db")
+cursor = bancoDados.cursor()
 
 cursor.execute("PRAGMA foreign_keys = ON")
 
@@ -13,4 +12,6 @@ cursor.execute("CREATE TABLE IF NOT EXISTS assuntos (a_id INTEGER PRIMARY KEY AU
 cursor.execute("CREATE TABLE IF NOT EXISTS topicos (t_id INTEGER PRIMARY KEY AUTOINCREMENT, a_id INTEGER, t_nome TEXT, FOREIGN KEY (a_id) REFERENCES assuntos(a_id) ON DELETE CASCADE)")
 cursor.execute("CREATE TABLE IF NOT EXISTS subtopico (s_id INTEGER PRIMARY KEY AUTOINCREMENT, t_id INTEGER, s_nome TEXT, data_estudo DATE, ultima_revisao DATE, numero_revisoes INTEGER, data_revisar DATE, FOREIGN KEY (t_id) REFERENCES topicos(t_id) ON DELETE CASCADE)")
 
-estudo.commit()
+modulo_interface_telaPrincipal.tela_principal(cursor, bancoDados)
+
+bancoDados.commit()
