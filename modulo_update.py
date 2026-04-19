@@ -1,12 +1,8 @@
 from datetime import date, timedelta
 
 def alterar_nome_materia(cursor, m_id, novo_nome):
-    cursor.execute("SELECT m_nome FROM materias WHERE m_nome = (?)", (novo_nome, ))
-    nome = cursor.fetchone()
-    if nome:
-        return False
-    else:
-        cursor.execute("UPDATE materias SET m_nome = (?) WHERE m_id = (?)", (novo_nome, m_id))
+    cursor.execute("UPDATE materias SET m_nome = (?) WHERE m_id = (?)", (novo_nome, m_id))
+    return True
 
 def alterar_nome_assunto(cursor, a_id, novo_nome):
     cursor.execute("SELECT m_id FROM assuntos WHERE a_id = (?)", (a_id, ))
@@ -18,7 +14,8 @@ def alterar_nome_assunto(cursor, a_id, novo_nome):
         return False
     else:
         cursor.execute("UPDATE assuntos SET a_nome = (?) WHERE a_id = (?)", (novo_nome, a_id))
-
+        return True
+    
 def alterar_materia_assunto(cursor, a_id, novo_m_id):
     cursor.execute("UPDATE assuntos SET m_id = (?) WHERE a_id = (?)", (novo_m_id, a_id))
 
@@ -32,6 +29,7 @@ def alterar_nome_topico(cursor, t_id, novo_nome):
         return False
     else:
         cursor.execute("UPDATE topicos SET t_nome = (?) WHERE t_id = (?)", (novo_nome, t_id))
+        return True
 
 def alterar_assunto_topico(cursor, t_id, novo_a_id):
     cursor.execute("UPDATE topicos SET a_id = (?) WHERE t_id = (?)", (novo_a_id, t_id))
@@ -46,36 +44,65 @@ def alterar_nome_subtopico(cursor, s_id, novo_nome):
         return False
     else:
         cursor.execute("UPDATE subtopico SET s_nome = (?) WHERE s_id = (?)", (novo_nome, s_id))
-
-def alterar_data_revisao_subtopico(cursor, s_id, data_nova):
-    cursor.execute("SELECT ultima_revisao FROM subtopico WHERE s_id = (?)", (s_id, ))
-    ultima_revisao1 = cursor.fetchone()
-    ultima_revisao = ultima_revisao1[0]
-    if data_nova <= ultima_revisao:
-        return False
-    else:
-        cursor.execute("UPDATE subtopico SET ultima_revisao = (?) WHERE s_id = (?)", (data_nova, s_id))
-
-
+        return True
+    
 def alterar_data_revisar_subtopico(cursor, s_id, data_nova):
-    cursor.execute("SELECT ultima_revisao FROM subtopico WHERE s_id = (?)", (s_id, ))
+    try:
+        date.fromisoformat(data_nova)
+    except ValueError:
+        return False
+
+    cursor.execute("SELECT ultima_revisao FROM subtopico WHERE s_id = (?)", (s_id,))
     ultima_revisao1 = cursor.fetchone()
     ultima_revisao = ultima_revisao1[0]
-    if data_nova <= ultima_revisao:
+    if ultima_revisao is None:
+        ultima_revisao = date.today().isoformat()
+    if data_nova < ultima_revisao:
         return False
     else:
         cursor.execute("UPDATE subtopico SET data_revisar = (?) WHERE s_id = (?)", (data_nova, s_id))
-
+        return True
+    
 def revisar(cursor, s_id):
     cursor.execute("SELECT ultima_revisao, data_estudo, numero_revisoes, data_revisar FROM subtopico WHERE s_id = (?)", (s_id, ))
-    datas0 = cursor.fetchone()
-    if datas0[2] == 0:
-        data_revisar = date.fromisoformat(datas0[0]) + timedelta(days=1)
-    elif datas0[2] == 1:
-        data_revisar = date.fromisoformat(datas0[0]) + timedelta(days=6)
+    dados = cursor.fetchone()
+    
+    ultimaRevisao = dados[0]
+    dataEstudo = dados[1]
+    numeroRevisoes = dados[2]
+    dataRevisar = dados[3]
+    
+    if ultimaRevisao is None:
+        if dataEstudo is not None:
+            ultimaRevisao = dataEstudo
+        else:
+            ultimaRevisao = date.today().isoformat()
+            
+    if dataEstudo is None:
+        dataEstudo = date.today().isoformat()
+    
+    if dataRevisar is not None:
+        dataRevisaoEfetiva = dataRevisar
     else:
-        intervalo = int(((date.fromisoformat(datas0[0]) - date.fromisoformat(datas0[1])).days)*2.5)
-        data_revisar = date.fromisoformat(datas0[0]) + timedelta(days=intervalo)
-    numero_revisoes = datas0[2] + 1
-    cursor.execute("UPDATE subtopico SET ultima_revisao = (?), numero_revisoes = (?), data_revisar = (?) WHERE s_id = (?)", (date.today(), numero_revisoes, data_revisar, s_id))
+        dataRevisaoEfetiva = date.today().isoformat()
+    
+    if numeroRevisoes == 0:
+        novaDataRevisar = date.fromisoformat(str(dataRevisaoEfetiva)) + timedelta(days=1)
+    elif numeroRevisoes == 1:
+        novaDataRevisar = date.fromisoformat(str(dataRevisaoEfetiva)) + timedelta(days=6)
+    else:
+        diasPassados = (date.fromisoformat(str(dataRevisaoEfetiva)) - date.fromisoformat(str(dataEstudo))).days
+        intervalo = int(diasPassados * 2.5)
+        
+        if intervalo <= 0:
+            intervalo = 1
+            
+        novaDataRevisar = date.fromisoformat(str(dataRevisaoEfetiva)) + timedelta(days=intervalo)
+        
+    numeroRevisoesNovo = numeroRevisoes + 1
+    
+    cursor.execute(
+        "UPDATE subtopico SET ultima_revisao = (?), numero_revisoes = (?), data_revisar = (?) WHERE s_id = (?)", 
+        (dataRevisaoEfetiva, numeroRevisoesNovo, novaDataRevisar, s_id)
+    )
     return True
