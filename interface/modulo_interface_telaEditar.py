@@ -1,5 +1,5 @@
 import tkinter as tk
-import modulo_update
+from lógica import modulo_update
 
 largura = 500
 altura = 480
@@ -196,7 +196,7 @@ def desenhar_campo_data(root, id, cursor, bancoDados, destruir2, root_principal)
 
 
 def chamada_editar(root, escolha, id, novoValor, cursor, bancoDados, destruir2, root_principal):
-    from modulo_interface_telaPrincipal import limpar_tela, desenhar_tela
+    from interface.modulo_interface_telaPrincipal import limpar_tela, desenhar_tela
 
     if escolha == 1:
         resultado = modulo_update.alterar_nome_materia(cursor, id, novoValor)
