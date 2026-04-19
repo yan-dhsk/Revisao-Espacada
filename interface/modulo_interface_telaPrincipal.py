@@ -1,10 +1,10 @@
 import tkinter as tk
 import sqlite3
 from datetime import date
-import modulo_update
-import modulo_interface_telaAdicionar
-import modulo_interface_telaRemover
-import modulo_interface_telaEditar
+from lógica import modulo_update
+from interface import modulo_interface_telaAdicionar
+from interface import modulo_interface_telaRemover
+from interface import modulo_interface_telaEditar
 
 
 largura = 800
