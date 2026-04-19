@@ -1,5 +1,5 @@
 import sqlite3
-import modulo_interface_telaPrincipal
+from interface import modulo_interface_telaPrincipal
 
 bancoDados = sqlite3.connect("Revisões.db")
 cursor = bancoDados.cursor()
