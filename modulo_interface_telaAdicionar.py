@@ -1,7 +1,7 @@
 import tkinter as tk
 import sqlite3
 from datetime import date
-import modulo_add
+from lógica import modulo_add
 
 largura = 250
 altura = 340
@@ -44,7 +44,7 @@ def verificar(root, cursor, dados_revisao, bancoDados, destruir, root_principal)
         sucesso.grid(column=0, row=13)
         bancoDados.commit()
 
-        from modulo_interface_telaPrincipal import limpar_tela, desenhar_tela
+        from interface.modulo_interface_telaPrincipal import limpar_tela, desenhar_tela
         limpar_tela(destruir)
         desenhar_tela(root_principal, cursor, bancoDados)
     else:
