@@ -4,6 +4,7 @@ from datetime import date
 import modulo_update
 import modulo_interface_telaAdicionar
 import modulo_interface_telaRemover
+import modulo_interface_telaEditar
 
 
 largura = 800
@@ -32,7 +33,7 @@ def desenhar_tela(root, cursor, bancoDados):
     destruir.append(botoes)
 
     botao_adicionar = tk.Button(botoes, text="Adicionar", bg="blue", fg="white", width=10, height=2, command=lambda : modulo_interface_telaAdicionar.tela_adicionar(cursor, bancoDados, destruir, root))
-    botao_editar = tk.Button(botoes, text="Editar", bg="blue", fg="white", width=10, height=2)
+    botao_editar = tk.Button(botoes, text="Editar", bg="blue", fg="white", width=10, height=2, command=lambda : modulo_interface_telaEditar.tela_editar(cursor, bancoDados, destruir, root))
     botao_remover = tk.Button(botoes, text="Remover", bg="blue", fg="white", width=10, height=2, command=lambda : modulo_interface_telaRemover.tela_deletar(cursor, bancoDados, destruir, root))
     
     botao_adicionar.pack(side='left')
@@ -40,29 +41,44 @@ def desenhar_tela(root, cursor, bancoDados):
     botao_remover.pack(side='left', padx=(10,0))
     botoes.pack()
 
+    canvas_scroll = tk.Canvas(root)
+    scrollbar = tk.Scrollbar(root, orient='vertical', command=canvas_scroll.yview)
+    frame_conteudo = tk.Frame(canvas_scroll)
 
-    hoje = tk.Label(root, text="Revisar hoje:", font=("Arial", 14))
-    hoje.place(x= (largura*0.025), y=((altura+200)*0.125))
-    destruir.append(hoje)
+    frame_id = canvas_scroll.create_window((0, 0), window=frame_conteudo, anchor='nw')
+    canvas_scroll.configure(yscrollcommand=scrollbar.set)
+    frame_conteudo.bind('<Configure>', lambda e: canvas_scroll.configure(scrollregion=canvas_scroll.bbox('all')))
+    canvas_scroll.bind('<Configure>', lambda e: canvas_scroll.itemconfig(frame_id, width=e.width))
 
-    medida_base = desenhar_revisoes(root, 800, 1, cursor, bancoDados) + 200
+    destruir.append(canvas_scroll)
+    destruir.append(scrollbar)
 
-    revisar_depois = tk.Label(root, text="Revisar depois:", font=('Arial', 14), fg='gray')
-    revisar_depois.place(x = (largura*0.025), y=((200+medida_base)*0.125))
-    destruir.append(revisar_depois)
+    scrollbar.pack(side='right', fill='y')
+    canvas_scroll.pack(side='left', fill='both', expand=True)
 
-    medida_base2 = desenhar_revisoes(root, medida_base + 200, 2, cursor, bancoDados)
+    hoje = tk.Label(frame_conteudo, text="Revisar hoje:", font=("Arial", 14))
+    hoje.grid(column=0, row=0, sticky='w', pady=(5, 0))
 
-    revisoes_atrasadas = tk.Label(root, text="Revisões atrasadas:", font=('Arial', 14), fg='red')
-    revisoes_atrasadas.place(x = (largura*0.025), y=((medida_base2+200)*0.125))
-    destruir.append(revisoes_atrasadas)
+    frame_hoje = tk.Frame(frame_conteudo)
+    frame_hoje.grid(column=0, row=1, sticky='ew')
+    desenhar_revisoes(frame_hoje, 1, cursor, bancoDados, root)
 
-    desenhar_revisoes(root, medida_base2 + 200, 3, cursor, bancoDados)
+    revisar_depois = tk.Label(frame_conteudo, text="Revisar depois:", font=('Arial', 14), fg='gray')
+    revisar_depois.grid(column=0, row=2, sticky='w', pady=(10, 0))
+
+    frame_depois = tk.Frame(frame_conteudo)
+    frame_depois.grid(column=0, row=3, sticky='ew')
+    desenhar_revisoes(frame_depois, 2, cursor, bancoDados, root)
+
+    revisoes_atrasadas = tk.Label(frame_conteudo, text="Revisões atrasadas:", font=('Arial', 14), fg='red')
+    revisoes_atrasadas.grid(column=0, row=4, sticky='w', pady=(10, 0))
+
+    frame_atrasadas = tk.Frame(frame_conteudo)
+    frame_atrasadas.grid(column=0, row=5, sticky='ew')
+    desenhar_revisoes(frame_atrasadas, 3, cursor, bancoDados, root)
 
 
-def desenhar_revisoes(root, medida_base, escolha, cursor, bancoDados):
-    global destruir
-
+def desenhar_revisoes(frame, escolha, cursor, bancoDados, root):
     if escolha == 1:
         cursor.execute("SELECT s_nome, t_id, s_id, data_revisar FROM subtopico WHERE data_revisar = (?)", (date.today(), ))
     elif escolha == 2:
@@ -91,67 +107,53 @@ def desenhar_revisoes(root, medida_base, escolha, cursor, bancoDados):
     for _ in range(len(subtopicos)):
         checkin.append(tk.IntVar())
 
-    espaço = 400
-    indice = 0
+    desenhar_nomes_colunas(frame)
 
-    desenhar_nomes_colunas(root, largura, medida_base)
+    indice = 0
 
     while True:
         if subtopicos != None and indice < len(subtopicos):
-            revisao3 = tk.Label(root, text=materias[indice][0], font=("Arial", 10))
-            revisao2 = tk.Label(root, text=assuntos[indice][0][0], font=("Arial", 10))
-            revisao1 = tk.Label(root, text=topicos[indice][0][0], font=("Arial", 10))
-            revisao = tk.Label(root, text=subtopicos[indice][0], font=("Arial", 10))
-            revisao4 = tk.Label(root, text=subtopicos[indice][3], font=("Arial", 10))
-            destruir.extend([revisao, revisao1, revisao2, revisao3, revisao4])
+            revisao3 = tk.Label(frame, text=materias[indice][0][0], font=("Arial", 10))
+            revisao2 = tk.Label(frame, text=assuntos[indice][0][0], font=("Arial", 10))
+            revisao1 = tk.Label(frame, text=topicos[indice][0][0], font=("Arial", 10))
+            revisao = tk.Label(frame, text=subtopicos[indice][0], font=("Arial", 10))
+            revisao4 = tk.Label(frame, text=subtopicos[indice][3], font=("Arial", 10))
 
-            check = tk.Checkbutton(root, text='', variable=checkin[indice])
-            destruir.append(check) 
+            check = tk.Checkbutton(frame, text='', variable=checkin[indice])
             check.config(command=lambda s_id=subtopicos[indice][2]: [modulo_update.revisar(cursor, s_id), bancoDados.commit(), limpar_tela('a'), desenhar_tela(root, cursor, bancoDados)])
 
-            revisao4.place(x= ((largura + 22400)*0.025), y=((medida_base + espaço)*0.125))
-            revisao.place(x= ((largura + 16900)*0.025), y=((medida_base + espaço)*0.125))
-            revisao1.place(x= ((largura + 11400)*0.025), y=((medida_base + espaço)*0.125))
-            revisao2.place(x= ((largura + 5900)*0.025), y=((medida_base + espaço)*0.125))
-            revisao3.place(x= ((largura + 400)*0.025), y=((medida_base + espaço)*0.125))
-            check.place(x= ((largura + 27900)*0.025), y=((medida_base + espaço)*0.125))
+            row = indice + 2
+            revisao3.grid(column=0, row=row, sticky='w', padx=5)
+            revisao2.grid(column=1, row=row, sticky='w', padx=5)
+            revisao1.grid(column=2, row=row, sticky='w', padx=5)
+            revisao.grid(column=3, row=row, sticky='w', padx=5)
+            revisao4.grid(column=4, row=row, sticky='w', padx=5)
+            check.grid(column=5, row=row, padx=5)
 
-            espaço += 200
             indice += 1
         else:
-            break;
-    if escolha == 1:
-        return espaço + altura
-    elif escolha == 2:
-        return medida_base + espaço
+            break
 
-def desenhar_nomes_colunas(root, largura, altura):
-    global destruir
 
-    materias_coluna = tk.Label(root, text="Materias", font=('Arial', 12))
-    materias_coluna.place(x= ((largura + 400)*0.025), y=((altura+200)*0.125))
-    destruir.append(materias_coluna)
+def desenhar_nomes_colunas(frame):
+    materias_coluna = tk.Label(frame, text="Materias", font=('Arial', 12))
+    materias_coluna.grid(column=0, row=0, sticky='w', padx=5)
 
-    assuntos_coluna = tk.Label(root, text="Assuntos", font=('Arial', 12))
-    assuntos_coluna.place(x= ((largura + 5900)*0.025), y=((altura+200)*0.125))
-    destruir.append(assuntos_coluna)
+    assuntos_coluna = tk.Label(frame, text="Assuntos", font=('Arial', 12))
+    assuntos_coluna.grid(column=1, row=0, sticky='w', padx=5)
 
-    topicos_coluna = tk.Label(root, text="Tópicos", font=('Arial', 12))
-    topicos_coluna.place(x= ((largura + 11400)*0.025), y=((altura+200)*0.125))   
-    destruir.append(topicos_coluna)
+    topicos_coluna = tk.Label(frame, text="Tópicos", font=('Arial', 12))
+    topicos_coluna.grid(column=2, row=0, sticky='w', padx=5)
 
-    subtopicos_coluna = tk.Label(root, text="Subtópicos", font=('Arial', 12))
-    subtopicos_coluna.place(x= ((largura + 16900)*0.025), y=((altura+200)*0.125))  
-    destruir.append(subtopicos_coluna)
+    subtopicos_coluna = tk.Label(frame, text="Subtópicos", font=('Arial', 12))
+    subtopicos_coluna.grid(column=3, row=0, sticky='w', padx=5)
 
-    datas_revisar_coluna = tk.Label(root, text="Data", font=('Arial', 12))
-    datas_revisar_coluna.place(x= ((largura + 22400)*0.025), y=((altura+200)*0.125))  
-    destruir.append(datas_revisar_coluna)
+    datas_revisar_coluna = tk.Label(frame, text="Data", font=('Arial', 12))
+    datas_revisar_coluna.grid(column=4, row=0, sticky='w', padx=5)
 
-    linha = tk.Canvas(root, width=660, height=2, bg="#000000")
-    linha.place(x= ((largura + 400)*0.025), y=((altura+360)*0.125))
+    linha = tk.Canvas(frame, width=660, height=2, bg="#000000")
+    linha.grid(column=0, row=1, columnspan=6, sticky='ew')
     linha.create_line(0, 0, 700, 0, fill="#000000", width=2)
-    destruir.append(linha)
 
 def limpar_tela(destruir2):
     global destruir
