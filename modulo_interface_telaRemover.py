@@ -1,7 +1,7 @@
 import tkinter as tk
 import sqlite3
 from datetime import date
-import modulo_delete
+from lógica import modulo_delete
 
 largura = 500
 altura = 480
@@ -97,7 +97,7 @@ def desenhar_lista(root, escolha, cursor, bancoDados, destruir2, root_principal)
         revisao.grid(column=0, row=x)
 
 def chamada_deletar(root, escolha, id, cursor, bancoDados, destruir2, root_principal):
-    from modulo_interface_telaPrincipal import limpar_tela, desenhar_tela
+    from interface.modulo_interface_telaPrincipal import limpar_tela, desenhar_tela
     
     if escolha == 1:
         modulo_delete.deletar_materia(cursor, id)
