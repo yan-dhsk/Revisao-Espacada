@@ -1,6 +1,5 @@
 import sqlite3
 import modulo_interface_telaPrincipal
-import modulo_interface_telaAdicionar
 
 bancoDados = sqlite3.connect("Revisões.db")
 cursor = bancoDados.cursor()
@@ -14,4 +13,4 @@ cursor.execute("CREATE TABLE IF NOT EXISTS subtopico (s_id INTEGER PRIMARY KEY A
 
 modulo_interface_telaPrincipal.tela_principal(cursor, bancoDados)
 
-bancoDados.commit()
+bancoDados.close()
