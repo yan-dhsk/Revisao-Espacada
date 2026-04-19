@@ -22,28 +22,35 @@ def desenhar_botao(cursor, bancoDados, root, dados_revisao, destruir, root_princ
     adicionar.grid(column=0, row=12)
 
 def verificar(root, cursor, dados_revisao, bancoDados, destruir, root_principal):
-    modulo_add.adicionar_materia(cursor, dados_revisao[0].get())
-    modulo_add.adicionar_assunto(cursor, dados_revisao[0].get(), dados_revisao[1].get())
-    modulo_add.adicionar_topico(cursor, dados_revisao[1].get(), dados_revisao[2].get())
-    verificador_repeticao = modulo_add.adicionar_subtopico(cursor, dados_revisao[2].get(), dados_revisao[3].get())
-    
-    if verificador_repeticao == True:
-        sucesso = tk.Label(root, text="Adicionado com sucesso!", fg = 'green', font=("Arial", 14))
+    valores = [d.get().strip() for d in dados_revisao]
+    if any(v == "" for v in valores):
+        falha = tk.Label(root, text="Preencha todos os campos!", fg="red", font=("Arial", 14))
         if root.grid_slaves(row=13, column=0):
-            temp = root.grid_slaves(row=13, column=0)
-            temp[0].destroy()
+            root.grid_slaves(row=13, column=0)[0].destroy()
+        falha.grid(column=0, row=13)
+        return
+
+    a = modulo_add.adicionar_materia(cursor, valores[0])
+    b = modulo_add.adicionar_assunto(cursor, valores[0], valores[1])
+    c = modulo_add.adicionar_topico(cursor, valores[0], valores[1], valores[2])
+    d = modulo_add.adicionar_subtopico(cursor, valores[0], valores[1], valores[2], valores[3])
+
+    print(a, b, c, d)
+
+    if a == True and b == True and c == True and d == True:
+        sucesso = tk.Label(root, text="Adicionado com sucesso!", fg='green', font=("Arial", 14))
+        if root.grid_slaves(row=13, column=0):
+            root.grid_slaves(row=13, column=0)[0].destroy()
         sucesso.grid(column=0, row=13)
         bancoDados.commit()
 
         from modulo_interface_telaPrincipal import limpar_tela, desenhar_tela
         limpar_tela(destruir)
         desenhar_tela(root_principal, cursor, bancoDados)
-
     else:
         falha = tk.Label(root, text="Erro ao adicionar item!", fg="red", font=("Arial", 14))
         if root.grid_slaves(row=13, column=0):
-            temp = root.grid_slaves(row=13, column=0)
-            temp[0].destroy()
+            root.grid_slaves(row=13, column=0)[0].destroy()
         falha.grid(column=0, row=13)
 
 def desenhar_tela_adicionar(root):
