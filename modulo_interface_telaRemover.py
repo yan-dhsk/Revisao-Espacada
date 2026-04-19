@@ -9,6 +9,8 @@ altura = 480
 destruir = []
 
 def tela_deletar(cursor, bancoDados, destruir2, root_principal):
+    global destruir
+    destruir.clear()
     root = tk.Toplevel()
     root.title("Deletar")
     root.geometry(f'{largura}x{altura}')
@@ -63,16 +65,35 @@ def desenhar_lista(root, escolha, cursor, bancoDados, destruir2, root_principal)
 
     todas_revisoes = cursor.fetchall()
 
-    for x in range (len(destruir)):
+    for x in range(len(destruir)):
         destruir[x].destroy()
     destruir.clear()
 
-    frame2 = tk.Frame(root)
-    destruir.append(frame2)
-    frame2.pack()
+    canvas = tk.Canvas(root)
+    scrollbar = tk.Scrollbar(root, orient='vertical', command=canvas.yview)
+    frame2 = tk.Frame(canvas)
 
-    for x in range (len(todas_revisoes)):
-        revisao = tk.Button(frame2, text=todas_revisoes[x][0], command=lambda : chamada_deletar(root, escolha, todas_revisoes[x][1], cursor, bancoDados, destruir2, root_principal))
+    frame2.grid_columnconfigure(0, weight=1)
+
+    window_id = canvas.create_window((0, 0), window=frame2, anchor='nw')
+    canvas.configure(yscrollcommand=scrollbar.set)
+
+    def on_frame_configure(event):
+        canvas.configure(scrollregion=canvas.bbox('all'))
+    frame2.bind('<Configure>', on_frame_configure)
+
+    def on_canvas_configure(event):
+        canvas.itemconfig(window_id, width=event.width)
+    canvas.bind('<Configure>', on_canvas_configure)
+
+    destruir.append(canvas)
+    destruir.append(scrollbar)
+
+    scrollbar.pack(side='right', fill='y')
+    canvas.pack(side='left', fill='both', expand=True)
+
+    for x in range(len(todas_revisoes)):
+        revisao = revisao = tk.Button(frame2, text=todas_revisoes[x][0], command=lambda id=todas_revisoes[x][1]: chamada_deletar(root, escolha, id, cursor, bancoDados, destruir2, root_principal))
         revisao.grid(column=0, row=x)
 
 def chamada_deletar(root, escolha, id, cursor, bancoDados, destruir2, root_principal):
